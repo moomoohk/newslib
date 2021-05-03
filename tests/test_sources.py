@@ -34,11 +34,14 @@ def pytest_generate_tests(metafunc: Metafunc):
 def test_source(source: Source):
     root_content = source.get_root_content()
 
-    top_article = source.get_top_article_a(root_content)
-    assert isinstance(top_article, Tag)
+    top_article_a = source.get_top_article_a(root_content)
+    assert isinstance(top_article_a, Tag)
 
-    top_article_url = urljoin(source.root, top_article.attrs["href"])
+    top_article_url = urljoin(source.root, top_article_a.attrs["href"])
     top_article_html = source.get_html(top_article_url)
+
+    top_article_headline = source.get_headline(top_article_a, top_article=True)
+    assert isinstance(top_article_headline, str)
 
     top_article_category = source.get_category(top_article_url, top_article_html)
     assert isinstance(top_article_category, str)
@@ -48,5 +51,12 @@ def test_source(source: Source):
     if top_article_updated is not None:
         assert isinstance(top_article_updated, datetime)
 
-    substories = source.get_substories_a(root_content)
-    assert isinstance(substories, list)
+    substories_a = source.get_substories_a(root_content)
+    assert isinstance(substories_a, list)
+
+    first_substory_a = substories_a[0]
+
+    substory_headline = source.get_headline(first_substory_a)
+    assert isinstance(substory_headline, str)
+
+    assert isinstance(source.valid_substory(first_substory_a), bool)
