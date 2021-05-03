@@ -32,14 +32,16 @@ class IsraelHayomSource(Source):
     def published_selector(self) -> str:
         return ".time time"
 
-    def get_times(self, html, link):
+    def get_times(self, url, html=None):
+        html = self.get_html(url, html)
+
         published_timestamp: str = html.select_one(self.published_selector).attrs["datetime"]
         last_updated = None
         published = datetime.strptime(published_timestamp.strip(), "%Y-%m-%dT%H:%M:%S")
 
         return published, last_updated
 
-    def extract_headline(self, a, top_article=False):
+    def get_headline(self, a, top_article=False):
         if top_article:
             return a.select_one(".title").text.strip()
 

@@ -42,7 +42,7 @@ class YnetSource(Source):
         if error:
             raise Exception(f"Blocked. Case number {error.text}")
 
-    def extract_headline(self, a, top_article=False):
+    def get_headline(self, a, top_article=False):
         title_div = a.select_one(".title")
         if title_div:
             headline_text = title_div.text.strip()
@@ -54,10 +54,14 @@ class YnetSource(Source):
     # def valid_substory(self, a):
     #     return a.attrs["href"].startswith("/articles/")
 
-    def is_premium(self, html, link):
+    def is_premium(self, url, html=None):
+        html = self.get_html(url, html)
+
         return html.select_one(self.premium_selector) is not None
 
-    def get_category(self, html, link):
+    def get_category(self, url, html=None):
+        html = self.get_html(url, html)
+
         breadcrumbs = html.select_one(self.category_selector)
 
         if breadcrumbs is None:
@@ -73,7 +77,9 @@ class YnetSource(Source):
 
         return first_breadcrumb.text
 
-    def get_times(self, html, link):
+    def get_times(self, url, html=None):
+        html = self.get_html(url, html)
+
         published_text: str = normalize("NFKD", html.select_one(self.updated_selector).text)
         last_updated = None
         published = None

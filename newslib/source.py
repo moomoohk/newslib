@@ -73,13 +73,23 @@ class Source:
     @staticmethod
     def get_content(url: str) -> bytes:
         response = get(url, verify=False, headers={
-            "User-Agent": "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
+                          "Chrome/89.0.4389.90 Safari/537.36 "
+            # "User-Agent": "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"
         })
 
         if not response.ok:
             raise Exception(f"Got {response.status_code} when GETing {url}")
 
         return response.content
+
+    @staticmethod
+    def get_html(url, html=None):
+        if html is None:
+            content = Source.get_content(url)
+            html = BeautifulSoup(content, "lxml")
+
+        return html
 
     def get_root_content(self):
         try:
@@ -116,25 +126,27 @@ class Source:
 
         return substories
 
-    def extract_headline(self, a: Tag, top_article=False) -> str:
+    def get_headline(self, a: Tag, top_article=False) -> str:
         return a.text.strip()
 
     def valid_substory(self, a: Tag) -> bool:
         return True
 
-    def is_premium(self, html: Tag, link: str) -> bool:
+    def is_premium(self, url: str, html: Tag = None) -> bool:
         return False
 
-    def get_times(self, html: Tag, link: str) -> tuple[Optional[datetime], Optional[datetime]]:
+    def get_times(self, url: str, html: Tag = None) -> tuple[Optional[datetime], Optional[datetime]]:
         """
         :return: Tuple of published time and last updated time (if any)
         """
         return None, None
 
-    def get_category(self, html: Tag, link: str) -> str:
+    def get_category(self, url: str, html: Tag = None) -> str:
+        html = self.get_html(url, html)
+
         category = html.select_one(self.category_selector)
         if category is None:
-            raise Exception(f"Couldn't get category for {link}")
+            raise Exception(f"Couldn't get category for {url}")
 
         return normalize("NFKD", category.text)
 

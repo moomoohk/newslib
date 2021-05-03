@@ -26,7 +26,9 @@ class N12Source(Source):
     def published_selector(self) -> str:
         return ".writer-data > span.display-date"
 
-    def get_times(self, html, link):
+    def get_times(self, url, html=None):
+        html = self.get_html(url, html)
+
         published = html.select_one(self.published_selector)
 
         spans = [span.text for span in published.find_all("span")]
@@ -41,7 +43,9 @@ class N12Source(Source):
 
         return published, updated
 
-    def get_category(self, html, link):
+    def get_category(self, url, html=None):
+        html = self.get_html(url, html)
+
         category = html.select_one(self.category_selector)
 
         if category.text == "החדשות":

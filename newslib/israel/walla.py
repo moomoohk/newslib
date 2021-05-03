@@ -33,17 +33,21 @@ class WallaSource(Source):
     def published_selector(self) -> str:
         return "time"
 
-    def extract_headline(self, a, top_article=False):
+    def get_headline(self, a, top_article=False):
         return a.select_one("h3").text.strip()
 
-    def get_times(self, html, link):
+    def get_times(self, url, html=None):
+        html = self.get_html(url, html)
+
         published = html.select_one(self.published_selector)
         if published.has_attr("datetime"):
             published = datetime.strptime(published.attrs["datetime"], "%Y-%m-%d %H:%M")
 
         return published, None
 
-    def get_category(self, html, link):
+    def get_category(self, url, html=None):
+        html = self.get_html(url, html)
+
         nav = html.select_one(self.category_selector)
 
         if nav.text == "חדשות" and nav.next_sibling is not None:

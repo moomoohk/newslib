@@ -16,18 +16,22 @@ class Arutz7Source(Source):
     def valid_substory(self, a):
         return a.attrs["href"].startswith("/News/")
 
-    def extract_headline(self, a, top_article=False):
+    def get_headline(self, a, top_article=False):
         if top_article:
             return a.select_one("strong").text.strip()
 
         return a.select_one("h2").text.strip()
 
-    def get_category(self, html, link):
+    def get_category(self, url, html=None):
+        html = self.get_html(url, html)
+
         breadcrumbs = html.select_one(self.category_selector)
 
         return breadcrumbs.select("a")[2].text
 
-    def get_times(self, html, link):
+    def get_times(self, url, html=None):
+        html = self.get_html(url, html)
+
         published_text: str = normalize("NFKD", html.select_one(self.published_selector).text)
         published = datetime.strptime(published_text, "%d/%m/%y %H:%M")
 

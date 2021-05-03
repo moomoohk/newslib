@@ -38,13 +38,15 @@ class MaarivSource(Source):
     def published_selector(self) -> str:
         return ".article-publish-date"
 
-    def extract_headline(self, a, top_article=False):
+    def get_headline(self, a, top_article=False):
         if top_article:
             return a.select_one(".top-story-title").text
 
         return a.select_one(".three-articles-in-row-title").text
 
-    def get_times(self, html, link):
+    def get_times(self, url, html=None):
+        html = self.get_html(url, html)
+
         article_metadatas = html.select(self.json_metadata_selector)
 
         for metadata_tag in article_metadatas:
@@ -57,10 +59,12 @@ class MaarivSource(Source):
 
                 return published, modified
 
-        raise Exception(f"Couldn't get times for {link}")
+        raise Exception(f"Couldn't get times for {url}")
 
-    def get_category(self, html, link):
-        if urlparse(link).netloc.startswith("sport1."):
+    def get_category(self, url, html=None):
+        html = self.get_html(url, html)
+
+        if urlparse(url).netloc.startswith("sport1."):
             return "ספורט"
 
-        return super().get_category(html, link)
+        return super().get_category(url, html)

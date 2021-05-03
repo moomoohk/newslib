@@ -30,33 +30,37 @@ class HaaretzSource(Source):
     def published_selector(self) -> str:
         return "time"
 
-    def is_premium(self, html, link):
-        return ".premium" in link
+    def is_premium(self, url, html=None):
+        return ".premium" in url
 
     def get_rss_item_tags(self, item):
         return [tag.text.strip() for tag in item.select(self.rss_tags_name)]
 
-    def extract_headline(self, a, top_article=False):
+    def get_headline(self, a, top_article=False):
         if top_article:
             return a.select_one("h1").text
 
         return (a.select_one("h2 > span") or a.select_one("h2")).text
 
-    def get_times(self, html, link):
+    def get_times(self, url, html=None):
+        html = self.get_html(url, html)
+
         published = html.select_one(self.published_selector)
         if published.has_attr("datetime"):
             published = datetime.strptime(published.attrs["datetime"], "%Y-%m-%dT%H:%M:%S%z")
 
         return published, None
 
-    def get_category(self, html, link):
+    def get_category(self, url, html=None):
+        html = self.get_html(url, html)
+
         nav = html.select_one(self.category_selector)
         if nav is None:
             return None
 
         breadcrumbs = nav.select("span > a")
 
-        if urlparse(link).path.startswith("/news/"):
+        if urlparse(url).path.startswith("/news/"):
             return breadcrumbs[1].text
 
         return breadcrumbs[0].text
