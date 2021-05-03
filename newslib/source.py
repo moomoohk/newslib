@@ -1,9 +1,13 @@
 from abc import abstractmethod
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Union
 from unicodedata import normalize
 
+from bs4 import BeautifulSoup
 from bs4.element import Tag
+from requests import get
+
+from newslib import logger
 
 
 class Source:
@@ -65,6 +69,52 @@ class Source:
             return [tag.strip() for tag in tags.text.split(",")]
 
         return []
+
+    @staticmethod
+    def get_content(url: str) -> bytes:
+        response = get(url, verify=False, headers={
+            "User-Agent": "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"
+        })
+
+        if not response.ok:
+            raise Exception(f"Got {response.status_code} when GETing {url}")
+
+        return response.content
+
+    def get_root_content(self):
+        try:
+            root_content = self.get_content(self.root)
+        except Exception:
+            logger.error("Couldn't GET root content")
+            raise
+
+        return root_content
+
+    def get_top_article_a(self, root_content: Union[str, bytes, Tag] = None) -> Tag:
+        if root_content is None:
+            root_content = self.get_root_content()
+
+        if not isinstance(root_content, Tag):
+            root_content = BeautifulSoup(root_content, "lxml")
+
+        top_article_a = root_content.select_one(self.top_article_selector)
+        if top_article_a is None:
+            raise Exception("Bad top article selector")
+
+        return top_article_a
+
+    def get_substories_a(self, root_content: Union[str, bytes, Tag] = None) -> list[Tag]:
+        if root_content is None:
+            root_content = self.get_root_content()
+
+        if not isinstance(root_content, Tag):
+            root_content = BeautifulSoup(root_content, "lxml")
+
+        substories = root_content.select(self.substories_selector)
+        if substories is None:
+            raise Exception("Bad substories selector")
+
+        return substories
 
     def extract_headline(self, a: Tag, top_article=False) -> str:
         return a.text.strip()
