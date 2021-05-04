@@ -51,9 +51,6 @@ class YnetSource(Source):
 
         return headline_text
 
-    # def valid_substory(self, a):
-    #     return a.attrs["href"].startswith("/articles/")
-
     def is_premium(self, url, html=None):
         html = self.get_html(url, html)
 
