@@ -84,7 +84,7 @@ class Source:
         return response.content
 
     @staticmethod
-    def get_html(url, html=None) -> Tag:
+    def get_html(url, html: Union[Tag, str, bytes] = None) -> Tag:
         if html is None:
             content = Source.get_content(url)
             html = BeautifulSoup(content, "lxml")

@@ -89,7 +89,8 @@ class News13Source(Source):
 
         return [items[str(post_id)] for post_id in main_block_posts]
 
-    def create_a(self, article_data: dict):
+    @staticmethod
+    def create_a(article_data: dict):
         article_link = article_data.get("link")
         article_title = article_data.get("title")
         if not all((article_link, article_title)):
