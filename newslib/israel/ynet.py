@@ -65,14 +65,17 @@ class YnetSource(Source):
             breadcrumbs = html.select_one("nav.categoryBreadcrumbs")
 
         first_breadcrumb = breadcrumbs.select_one("li:first-child")
+        first_breadcrumb_text = first_breadcrumb.text.strip(">")
 
-        if first_breadcrumb.text in ["חדשות"]:
-            if first_breadcrumb.next_sibling.text == "פרשנות וטורים":
-                return first_breadcrumb.next_sibling.text
+        if first_breadcrumb_text == "חדשות":
+            next_breadcrumb = first_breadcrumb.next_sibling.text.strip(">")
 
-            return list(breadcrumbs.children)[-1].text
+            if next_breadcrumb == "פרשנות וטורים":
+                return next_breadcrumb
 
-        return first_breadcrumb.text
+            return breadcrumbs.select_one("li:last-child a").text.strip()
+
+        return first_breadcrumb_text
 
     def get_times(self, url, html=None):
         html = self.get_html(url, html)
