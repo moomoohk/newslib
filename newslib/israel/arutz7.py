@@ -14,7 +14,7 @@ class Arutz7Source(Source):
         )
 
     def valid_substory(self, a):
-        return a.attrs["href"].startswith("/News/")
+        return a.attrs["href"].lower().startswith("/news/")
 
     def get_headline(self, a, top_article=False):
         if top_article:
