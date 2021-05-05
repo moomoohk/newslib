@@ -28,12 +28,14 @@ def pytest_generate_tests(metafunc: Metafunc):
         WallaSource(),
         YnetSource(),
     ]
-    metafunc.parametrize("source", sources, ids=[source.name for source in sources])
+    metafunc.parametrize(
+        ("source", "root_content"),
+        zip(sources, [source.get_root_content() for source in sources]),
+        ids=[source.name for source in sources]
+    )
 
 
-def test_source(source: Source):
-    root_content = source.get_root_content()
-
+def test_source(source: Source, root_content: bytes):
     top_article_a = source.get_top_article_a(root_content)
     assert isinstance(top_article_a, Tag)
 
