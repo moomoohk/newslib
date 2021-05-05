@@ -65,9 +65,12 @@ class YnetSource(Source):
             breadcrumbs = html.select_one("nav.categoryBreadcrumbs")
 
         first_breadcrumb = breadcrumbs.select_one("li:first-child")
+        if first_breadcrumb is None:
+            raise Exception(f"Failed to get category for URL {url}")
+
         first_breadcrumb_text = first_breadcrumb.text.strip(">")
 
-        if first_breadcrumb_text == "חדשות":
+        if first_breadcrumb_text == "חדשות" and first_breadcrumb.next_sibling is not None:
             next_breadcrumb = first_breadcrumb.next_sibling.text.strip(">")
 
             if next_breadcrumb == "פרשנות וטורים":
