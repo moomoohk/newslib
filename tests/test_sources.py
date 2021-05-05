@@ -46,6 +46,14 @@ def test_source(source: Source):
     top_article_category = source.get_category(top_article_url, top_article_html)
     assert isinstance(top_article_category, str)
 
+    top_article_tags = source.get_tags(top_article_url, top_article_html)
+    if source.tags_selector is None:
+        assert top_article_tags is None
+    else:
+        assert isinstance(top_article_tags, list)
+        if len(top_article_tags) > 0:
+            assert all([isinstance(tag, str) for tag in top_article_tags])
+
     top_article_created, top_article_updated = source.get_times(top_article_url, top_article_html)
     assert isinstance(top_article_created, datetime)
     if top_article_updated is not None:

@@ -141,6 +141,15 @@ class Source:
         """
         return None, None
 
+    def get_tags(self, url: str, html: Tag = None) -> Optional[list[str]]:
+        if self.tags_selector is None:
+            return None
+
+        html = self.get_html(url, html)
+
+        tags_a = html.select(self.tags_selector)
+        return [a.text for a in tags_a]
+
     def get_category(self, url: str, html: Tag = None) -> str:
         html = self.get_html(url, html)
 
