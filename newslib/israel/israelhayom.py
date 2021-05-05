@@ -13,7 +13,7 @@ class IsraelHayomSource(Source):
             name="israelhayom",
             root="https://www.israelhayom.co.il/",
             rss_news_link="https://www.israelhayom.co.il/rss.xml",
-            tags_selector=".tags-list > li:not(.first) > a",
+            tags_selector="a.single-post-tag",
         )
 
     @property
@@ -51,8 +51,14 @@ class IsraelHayomSource(Source):
         if not isinstance(root_content, Tag):
             root_content = BeautifulSoup(root_content, "lxml")
 
-        data = root_content.select_one("#__NEXT_DATA__").string
-        data_obj = json.loads(data)
+        if len(root_content.body) == 0:
+            raise Exception("Empty body received")
+
+        data = root_content.select_one("#__NEXT_DATA__")
+        if data is None:
+            raise Exception("Article data not found")
+
+        data_obj = json.loads(data.string)
 
         structure = json.loads(
             data_obj
