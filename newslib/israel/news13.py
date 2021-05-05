@@ -19,19 +19,19 @@ class News13Source(Source):
 
     @property
     def top_article_selector(self) -> str:
-        raise NotImplemented
+        raise NotImplementedError
 
     @property
     def substories_selector(self) -> str:
-        raise NotImplemented
+        raise NotImplementedError
 
     @property
     def category_selector(self) -> str:
-        raise NotImplemented
+        raise NotImplementedError
 
     @property
     def published_selector(self) -> str:
-        raise NotImplemented
+        raise NotImplementedError
 
     def get_times(self, url, html=None):
         post_data = self.get_post_data(url, html)

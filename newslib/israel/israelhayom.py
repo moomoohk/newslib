@@ -18,11 +18,11 @@ class IsraelHayomSource(Source):
 
     @property
     def top_article_selector(self) -> str:
-        raise NotImplemented
+        raise NotImplementedError
 
     @property
     def substories_selector(self) -> str:
-        raise NotImplemented
+        raise NotImplementedError
 
     @property
     def category_selector(self) -> str:
