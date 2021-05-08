@@ -121,7 +121,7 @@ class Source:
             root_content = BeautifulSoup(root_content, "lxml")
 
         substories = root_content.select(self.substories_selector)
-        if substories is None:
+        if not substories:
             raise Exception("Bad substories selector")
 
         return substories
