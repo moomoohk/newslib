@@ -22,8 +22,7 @@ class WallaSource(Source):
 
     @property
     def substories_selector(self) -> str:
-        return "#container > section.fc.common-section.grid-1-2 > section > " \
-               "section.sequence.common-articles.editor-selections.no-title > ul > li > article > a "
+        return ".walla-core-container > .top-section + ul a"
 
     @property
     def category_selector(self) -> str:
