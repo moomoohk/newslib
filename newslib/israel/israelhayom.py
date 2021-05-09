@@ -77,6 +77,10 @@ class IsraelHayomSource(Source):
             .get("elements")[0] \
             .get("elements")[1] \
             .get("props") \
+            .get("context") + main_section_container \
+            .get("elements")[0] \
+            .get("elements")[2] \
+            .get("props") \
             .get("context")
 
     def get_top_article_a(self, root_content=None) -> Tag:
