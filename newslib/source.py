@@ -89,6 +89,9 @@ class Source:
             content = Source.get_content(url)
             html = BeautifulSoup(content, "lxml")
 
+            if len(html.body) == 0:
+                raise Exception("Empty body received")
+
         return html
 
     def get_root_content(self):

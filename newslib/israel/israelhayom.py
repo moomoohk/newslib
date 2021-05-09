@@ -11,7 +11,7 @@ class IsraelHayomSource(Source):
     def __init__(self):
         super().__init__(
             name="israelhayom",
-            root="https://www.israelhayom.co.il/",
+            root="https://www.israelhayom.co.il/news",
             rss_news_link="https://www.israelhayom.co.il/rss.xml",
             tags_selector="a.single-post-tag",
         )
@@ -65,7 +65,7 @@ class IsraelHayomSource(Source):
                 .get("props")
                 .get("pageProps")
                 .get("initialState")
-                .get("Post:cG9zdDoxNTQyMTQ=")
+                .get("Post:cG9zdDoxNjEyOTg=")
                 .get("elementorStructure")
         )
 
@@ -75,7 +75,7 @@ class IsraelHayomSource(Source):
 
         return main_section_container \
             .get("elements")[0] \
-            .get("elements")[0] \
+            .get("elements")[1] \
             .get("props") \
             .get("context")
 
