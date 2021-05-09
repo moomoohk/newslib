@@ -16,5 +16,6 @@ setup(
         "pytest",
         "requests",
         "lxml",
+        "lzstring",
     ]
 )
