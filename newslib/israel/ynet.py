@@ -51,6 +51,9 @@ class YnetSource(Source):
 
         return headline_text
 
+    def valid_substory(self, a):
+        return "/fashion/" not in a.attrs["href"] and "/parents/" not in a.attrs["href"]
+
     def is_premium(self, url, html=None):
         html = self.get_html(url, html)
 
