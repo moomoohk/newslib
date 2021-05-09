@@ -1,4 +1,11 @@
+import json
+import re
 from datetime import datetime
+from functools import cache
+from urllib.parse import unquote
+
+from bs4.element import Tag
+from lzstring import LZString
 
 from newslib.source import Source
 
@@ -16,40 +23,113 @@ class WallaSource(Source):
                           "section > article > section.tags.target-editorial > ul > li > a",
         )
 
+        self.data_query_re = re.compile(r"window\.WallafrontloadData = \"(?P<data>.+?)\"")
+
     @property
     def top_article_selector(self) -> str:
-        return "section.top-section > a"
+        raise NotImplementedError
 
     @property
     def substories_selector(self) -> str:
-        return ".walla-core-container > .top-section + ul a"
+        raise NotImplementedError
 
     @property
     def category_selector(self) -> str:
-        return "nav.breadcrumb > ul > li"
+        raise NotImplementedError
 
     @property
     def published_selector(self) -> str:
-        return "time"
+        raise NotImplementedError
 
-    def get_headline(self, a, top_article=False):
-        return a.select_one("h3").text.strip()
+    @cache
+    def get_data(self, html: str):
+        match = re.search(self.data_query_re, html)
+        if not match:
+            raise Exception("Couldn't extract article data")
+
+        data = LZString().decompressFromBase64(match["data"])
+        data = unquote(data)
+        return json.loads(data)
+
+    def get_post_data(self, url: str, html=None):
+        html = self.get_html(url, html)
+        data = self.get_data(str(html))
+
+        article_id = re.match(r"https://news\.walla\.co\.il/item/(?P<id>\d+)", url)["id"]
+
+        return data.get(f"Item_{article_id}").get("item").get("data")
+
+    @cache
+    def get_articles(self, html: str):
+        data = self.get_data(html)
+
+        articles = data.get("***Editor_3").get("editor").get("data").get("events")
+        if not articles:
+            raise Exception("Malformed JSON (no articles)")
+
+        return articles
+
+    @staticmethod
+    def create_a(article_data: dict):
+        article_link = article_data.get("canonical").get("url")
+        article_title = article_data.get("title")
+        if not all((article_link, article_title)):
+            raise Exception("Malformed JSON (missing article data)")
+
+        a = Tag(name="a", attrs={"href": article_link})
+        a.string = article_title
+
+        return a
+
+    def get_top_article_a(self, root_content=None):
+        if root_content is None:
+            root_content = self.get_root_content()
+
+        elif isinstance(root_content, Tag):
+            root_content = str(root_content)
+
+        elif isinstance(root_content, bytes):
+            root_content = root_content.decode()
+
+        articles = self.get_articles(root_content)
+        if len(articles) < 1:
+            raise Exception("Articles list too short")
+
+        return self.create_a(articles[0])
+
+    def get_substories_a(self, root_content=None):
+        if root_content is None:
+            root_content = self.get_root_content()
+
+        elif isinstance(root_content, Tag):
+            root_content = str(root_content)
+
+        elif isinstance(root_content, bytes):
+            root_content = root_content.decode()
+
+        articles = self.get_articles(root_content)
+        if len(articles) < 1:
+            raise Exception("Articles list too short")
+
+        articles.pop(0)
+
+        substories = []
+        for article in articles:
+            substories.append(self.create_a(article))
+
+        return substories
 
     def get_times(self, url, html=None):
-        html = self.get_html(url, html)
+        post_data = self.get_post_data(url, html)
 
-        published = html.select_one(self.published_selector)
-        if published.has_attr("datetime"):
-            published = datetime.strptime(published.attrs["datetime"], "%Y-%m-%d %H:%M")
+        publish_date = datetime.fromtimestamp(post_data.get("unix_publication_date"))
+        update_date = datetime.fromtimestamp(post_data.get("unix_update_date"))
+        return publish_date, update_date
 
-        return published, None
+    def get_category(self, url, html=None) -> str:
+        post_data = self.get_post_data(url, html)
+        category = post_data.get("canonical").get("display").get("name")
+        if category is None:
+            raise Exception("Malformed JSON (missing category)")
 
-    def get_category(self, url, html=None):
-        html = self.get_html(url, html)
-
-        nav = html.select_one(self.category_selector)
-
-        if nav.text == "חדשות" and nav.next_sibling is not None:
-            return nav.next_sibling.text.strip()
-
-        return nav.text.strip()
+        return category
