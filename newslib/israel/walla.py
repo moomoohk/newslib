@@ -1,7 +1,7 @@
 import json
 import re
 from datetime import datetime
-from functools import cache
+from functools import lru_cache
 from urllib.parse import unquote
 
 from bs4.element import Tag
@@ -41,7 +41,7 @@ class WallaSource(Source):
     def published_selector(self) -> str:
         raise NotImplementedError
 
-    @cache
+    @lru_cache(maxsize=10)
     def get_data(self, html: str):
         match = re.search(self.data_query_re, html)
         if not match:
@@ -59,7 +59,7 @@ class WallaSource(Source):
 
         return data.get(f"Item_{article_id}").get("item").get("data")
 
-    @cache
+    @lru_cache(maxsize=10)
     def get_articles(self, html: str):
         data = self.get_data(html)
 

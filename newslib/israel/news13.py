@@ -1,7 +1,7 @@
 import json
 import re
 from datetime import datetime
-from functools import cache
+from functools import lru_cache
 
 from bs4.element import Tag
 
@@ -46,7 +46,7 @@ class News13Source(Source):
 
         return published, updated
 
-    @cache
+    @lru_cache(maxsize=10)
     def get_data(self, html: str):
         match = re.search(self.data_query_re, html)
         if not match:
@@ -68,7 +68,7 @@ class News13Source(Source):
 
         return post_data
 
-    @cache
+    @lru_cache(maxsize=10)
     def get_articles(self, html: str):
         data = self.get_data(html)
 
