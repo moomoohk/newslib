@@ -60,14 +60,17 @@ class IsraelHayomSource(Source):
 
         data_obj = json.loads(data.string)
 
-        structure = json.loads(
-            data_obj
-                .get("props")
-                .get("pageProps")
-                .get("initialState")
-                .get("Post:cG9zdDoxNjEyOTg=")
-                .get("elementorStructure")
-        )
+        initial_state: dict = data_obj \
+            .get("props") \
+            .get("pageProps") \
+            .get("initialState")
+
+        if len(initial_state) != 2:
+            raise Exception(f"Initial state length was not 2 (got {len(initial_state)}")
+
+        initial_state.pop("ROOT_QUERY")
+
+        structure = json.loads(initial_state.popitem()[1].get("elementorStructure"))
 
         main_section_container = structure[1]
         if main_section_container.get("settings").get("_title") != "אזור רכיבים ראשי":
