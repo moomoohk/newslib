@@ -23,7 +23,7 @@ class WallaSource(Source):
                           "section > article > section.tags.target-editorial > ul > li > a",
         )
 
-        self.data_query_re = re.compile(r"window\.WallafrontloadData = \"(?P<data>.+?)\"")
+        self.data_query_re = re.compile(r"window\.loadDataState = \"(?P<data>.+?)\"")
 
     @property
     def top_article_selector(self) -> str:
@@ -57,13 +57,13 @@ class WallaSource(Source):
 
         article_id = re.match(r"https://news\.walla\.co\.il/item/(?P<id>\d+)", url)["id"]
 
-        return data.get(f"Item_{article_id}").get("item").get("data")
+        return data.get(f"Item_{article_id}").get("data").get("item").get("data")
 
     @lru_cache(maxsize=10)
     def get_articles(self, html: str):
         data = self.get_data(html)
 
-        articles = data.get("***Editor_3").get("editor").get("data").get("events")
+        articles = data.get("***Editor_3").get("data").get("editor").get("data").get("events")
         if not articles:
             raise Exception("Malformed JSON (no articles)")
 
