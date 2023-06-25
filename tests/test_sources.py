@@ -35,7 +35,7 @@ def pytest_generate_tests(metafunc: Metafunc):
     )
 
 
-def test_source(source: Source, root_content: bytes):
+def test_top_article(source: Source, root_content: bytes):
     top_article_a = source.get_top_article_a(root_content)
     assert isinstance(top_article_a, Tag)
 
@@ -61,6 +61,8 @@ def test_source(source: Source, root_content: bytes):
     if top_article_updated is not None:
         assert isinstance(top_article_updated, datetime)
 
+
+def test_substories(source: Source, root_content: bytes):
     substories_a = source.get_substories_a(root_content)
     assert isinstance(substories_a, list)
 
