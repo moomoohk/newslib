@@ -1,7 +1,11 @@
+import ast
+import json
+import re
 from datetime import datetime
+from functools import lru_cache
 from unicodedata import normalize
 
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, Tag
 
 from newslib.source import Source
 
@@ -17,24 +21,36 @@ class YnetSource(Source):
         )
 
         self.premium_selector = "#ynet_premium_blocked"
-        self.updated_selector = "div.art_header_footer > span:nth-child(3), div.authorAndDateContainer div.date"
-        self.find_error_selector = "#find_error"
+        # self.updated_selector = "div.art_header_footer > span:nth-child(3), div.authorAndDateContainer span.date"
+        # self.find_error_selector = "#find_error"
+        self.top_article_selectors = [
+            ".TopStoryWideComponenta",
+            ".TopStoryComponenta",
+            ".TopStoryWarComponenta",
+            ".TopStory1280Componenta"
+        ]
 
-    @property
-    def top_article_selector(self) -> str:
-        return ".TopStoryComponenta .slotTitle > a"
+        self.data_query_re = re.compile(r"dataLayer = \[(?P<data>.+?)\];", flags=re.DOTALL)
+
+    def get_top_article_a(self, root_content=None):
+        if root_content is None:
+            root_content = self.get_root_content()
+
+        if not isinstance(root_content, Tag):
+            root_content = BeautifulSoup(root_content, "lxml")
+
+        for top_article_selector in self.top_article_selectors:
+            if (top_article_div := root_content.select_one(top_article_selector)) is not None:
+                top_article_a = top_article_div.select_one("a")
+
+                if top_article_a is not None:
+                    return top_article_a
+
+        raise Exception("Could not find top article")
 
     @property
     def substories_selector(self) -> str:
-        return ".strip-1150 .textDiv a"
-
-    @property
-    def category_selector(self) -> str:
-        return "ul.trj_trajectory, nav.categoryBreadcrumbs > ul"
-
-    @property
-    def published_selector(self) -> str:
-        return "div.originalLaunchDate"
+        return ".YnetMultiStripRowsComponenta .textDiv a"
 
     def check_rss_error(self, feed: BeautifulSoup):
         error = feed.find(id="lblCase")
@@ -62,55 +78,39 @@ class YnetSource(Source):
     def get_category(self, url, html=None):
         html = self.get_html(url, html)
 
-        breadcrumbs = html.select_one(self.category_selector)
+        category_meta = html.find("meta", attrs={"property": "sub-channel-name"})
 
-        if breadcrumbs is None:
-            breadcrumbs = html.select_one("nav.categoryBreadcrumbs")
+        if category_meta is None:
+            raise Exception("Could not find category meta tag")
 
-        first_breadcrumb = breadcrumbs.select_one("li:first-child")
-        if first_breadcrumb is None:
-            raise Exception(f"Failed to get category for URL {url}")
-
-        first_breadcrumb_text = first_breadcrumb.text.strip(">")
-
-        if first_breadcrumb_text == "חדשות" and first_breadcrumb.next_sibling is not None:
-            next_breadcrumb = first_breadcrumb.next_sibling.text.strip(">")
-
-            if next_breadcrumb == "פרשנות וטורים":
-                return next_breadcrumb
-
-            return breadcrumbs.select_one("li:last-child a").text.strip()
-
-        return first_breadcrumb_text
+        return category_meta.attrs["content"].split("/")[-1]
 
     def get_times(self, url, html=None):
         html = self.get_html(url, html)
 
-        published_text: str = normalize("NFKD", html.select_one(self.updated_selector).text)
+        data = self.get_data(str(html))
+        published_text: str = data["datePublished"]
+        updated_text: str = data["dateModified"]
+
+        published = datetime.strptime(published_text, "%Y-%m-%d %H:%M:%S")
         last_updated = None
-        published = None
 
-        originally_published = html.select_one(self.published_selector)
-        if originally_published is None:
-            find_error = html.select_one(self.find_error_selector)
-
-            if find_error is not None:
-                originally_published = find_error.find_previous()
-
-        if originally_published is not None and len(originally_published) > 0:
-            originally_published_text = normalize("NFKD", originally_published.text)
-            originally_published_text = originally_published_text.split(" ", 2)[-1].strip()
-
-            if "," in originally_published_text:
-                published = datetime.strptime(originally_published_text, "%H:%M , %d.%m.%y")
-            else:
-                published = datetime.strptime(originally_published_text, "%d/%m/%Y %H:%M")
-
-        date_type, date_text = published_text.split(":", 1)
-
-        if "פורסם" in date_type:
-            published = datetime.strptime(date_text.strip(), "%d.%m.%y , %H:%M")
-        elif "עודכן" in date_type or "עדכון" in date_type:
-            last_updated = datetime.strptime(date_text.strip(), "%d.%m.%y , %H:%M")
+        if updated_text != published_text:
+            last_updated = datetime.strptime(updated_text, "%Y-%m-%d %H:%M:%S")
 
         return published, last_updated
+
+    @lru_cache(maxsize=10)
+    def get_data(self, html: str):
+        match = re.search(self.data_query_re, html)
+        if not match:
+            raise Exception("Couldn't extract article data")
+
+        data_text = re.sub(
+            "'userId': window\.YitPaywall && YitPaywall\.user && YitPaywall\.user\.props \? YitPaywall\.user\.props\.userId : \"\".+?,",
+            "",
+            match["data"],
+            flags=re.DOTALL,
+        )
+
+        return ast.literal_eval(data_text)
