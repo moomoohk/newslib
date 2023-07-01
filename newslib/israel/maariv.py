@@ -68,3 +68,8 @@ class MaarivSource(Source):
             return "ספורט"
 
         return super().get_category(url, html)
+
+    def valid_substory(self, a) -> bool:
+        href = a.attrs["href"]
+        return "sport1.maariv.co.il" not in href
+
