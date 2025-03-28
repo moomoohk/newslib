@@ -40,7 +40,7 @@ def test_top_article(source: Source, root_content: bytes):
     assert isinstance(top_article_a, Tag)
 
     top_article_url = urljoin(source.root, top_article_a.attrs["href"])
-    top_article_html = source.get_html(top_article_url)
+    top_article_html, top_article_url = source.get_html(top_article_url)
 
     top_article_headline = source.get_headline(top_article_a, top_article=True)
     assert isinstance(top_article_headline, str)

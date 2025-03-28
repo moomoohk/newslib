@@ -1,5 +1,8 @@
+import json
 from datetime import datetime
-from unicodedata import normalize
+from typing import Union
+
+from bs4 import Tag
 
 from newslib.source import Source
 
@@ -8,47 +11,60 @@ class Arutz7Source(Source):
     def __init__(self):
         super().__init__(
             name="arutz7",
-            root="https://www.inn.co.il/",
+            root="https://www.inn.co.il/api/NewAPI/HP",
             rss_news_link="https://www.inn.co.il/Rss.aspx?act=0.1",
             rss_news_flashes="https://www.inn.co.il/Rss.aspx",
         )
 
+    @staticmethod
+    def get_article_data(url):
+        article_id = url.split("/")[-1]
+        article_data_url = f"https://www.inn.co.il/api/NewAPI/Item?type=0&Item={article_id}&preview=0"
+
+        data, _ = Source.get_content(article_data_url)
+        data = json.loads(data)
+
+        return data
+
+    def get_root_content(self):
+        root_content = super().get_root_content()
+        return json.loads(root_content)
+
+    def get_top_article_a(self, root_content: Union[str, bytes, Tag] = None) -> Tag:
+        article_obj = root_content["data"]["Page"][0]["Items"][0]
+        a = Tag(
+            name="a",
+            attrs={
+                "href": article_obj["shotedLink"]
+            }
+        )
+        a.string = f"{article_obj['title2']} {article_obj['short']}"
+
+        return a
+
     def valid_substory(self, a):
         return a.attrs["href"].lower().startswith("/news/")
 
-    def get_headline(self, a, top_article=False):
-        if top_article:
-            return a.select_one("strong").text.strip()
-
-        return a.select_one("h2").text.strip()
-
     def get_category(self, url, html=None):
-        html = self.get_html(url, html)
-
-        breadcrumbs = html.select_one(self.category_selector)
-
-        return breadcrumbs.select("a")[2].text
+        data = self.get_article_data(url)
+        return data["catname"]
 
     def get_times(self, url, html=None):
-        html = self.get_html(url, html)
-
-        published_text: str = normalize("NFKD", html.select_one(self.published_selector).text)
-        published = datetime.strptime(published_text, "%d/%m/%y %H:%M")
-
-        return published, None
+        data = self.get_article_data(url)
+        return datetime.fromisoformat(data["itemDate"]), datetime.fromisoformat(data["firstUpdate"])
 
     @property
     def top_article_selector(self) -> str:
-        return "#HPMain a.HPTLink"
+        return ""
 
     @property
     def substories_selector(self) -> str:
-        return "#main > div.HPTitles.HPTitles1 a.HPTLink"
+        return ""
 
     @property
     def category_selector(self) -> str:
-        return "#BreadCrumbs"
+        return ""
 
     @property
     def published_selector(self) -> str:
-        return "span[itemprop='datePublished']"
+        return ""

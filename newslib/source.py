@@ -71,7 +71,7 @@ class Source:
         return []
 
     @staticmethod
-    def get_content(url: str) -> bytes:
+    def get_content(url: str) -> tuple[bytes, str]:
         response = get(url, verify=False, headers={
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
                           "Chrome/89.0.4389.90 Safari/537.36 "
@@ -81,22 +81,22 @@ class Source:
         if not response.ok:
             raise Exception(f"Got {response.status_code} when GETing {url}")
 
-        return response.content
+        return response.content, response.url
 
     @staticmethod
-    def get_html(url, html: Union[Tag, str, bytes] = None) -> Tag:
+    def get_html(url, html: Union[Tag, str, bytes] = None) -> tuple[Tag, str]:
         if html is None:
-            content = Source.get_content(url)
+            content, url = Source.get_content(url)
             html = BeautifulSoup(content, "lxml")
 
             if len(html.body) == 0:
                 raise Exception("Empty body received")
 
-        return html
+        return html, url
 
-    def get_root_content(self):
+    def get_root_content(self) -> bytes:
         try:
-            root_content = self.get_content(self.root)
+            root_content, _ = self.get_content(self.root)
         except Exception:
             logger.error("Couldn't GET root content")
             raise
