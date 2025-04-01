@@ -54,42 +54,12 @@ class IsraelHayomSource(Source):
         if len(root_content.body) == 0:
             raise Exception("Empty body received")
 
-        data = root_content.select_one("#__NEXT_DATA__")
-        if data is None:
-            raise Exception("Article data not found")
-
-        data_obj = json.loads(data.string)
-
-        initial_state: dict = data_obj \
-            .get("props") \
-            .get("pageProps") \
-            .get("initialState")
-
-        if len(initial_state) != 2:
-            raise Exception(f"Initial state length was not 2 (got {len(initial_state)}")
-
-        initial_state.pop("ROOT_QUERY")
-
-        structure = json.loads(initial_state.popitem()[1].get("elementorStructure"))
-
-        main_section_container = structure[1]
-        if main_section_container.get("settings").get("_title") != "אזור רכיבים ראשי":
-            raise Exception("Couldn't find main section container")
-
-        return main_section_container \
-            .get("elements")[0] \
-            .get("elements")[1] \
-            .get("props") \
-            .get("context") + main_section_container \
-            .get("elements")[0] \
-            .get("elements")[2] \
-            .get("props") \
-            .get("context")
+        return root_content.select(".posts-main-gallery .row article")
 
     def get_top_article_a(self, root_content=None) -> Tag:
         posts = self.get_posts(root_content)
 
-        return self.create_a(posts[0].get("post"))
+        return posts[0].select_one("a:has(> span.titleText)")
 
     def get_substories_a(self, root_content=None) -> list[Tag]:
         posts = self.get_posts(root_content)
@@ -98,12 +68,12 @@ class IsraelHayomSource(Source):
 
         substories = []
         for article in posts:
-            substories.append(self.create_a(article.get("post")))
+            substories.append(article.select_one("a:has(> span.titleText)"))
 
         return substories
 
     def get_times(self, url, html=None):
-        html = self.get_html(url, html)
+        html, url = self.get_html(url, html)
 
         published_timestamp: str = html.select_one(self.published_selector).attrs["datetime"]
         last_updated = html.select_one(".single-post-meta-dates time:last-child").attrs["datetime"]
