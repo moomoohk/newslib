@@ -62,7 +62,7 @@ class News13Source(Source):
         return json.loads(str(script))
 
     def get_post_data(self, url, html=None):
-        html = self.get_html(url, html)
+        html, url = self.get_html(url, html)
         data = self.get_data(str(html))
 
         return data.get("props").get("pageProps").get("page").get("Content").get("Item")

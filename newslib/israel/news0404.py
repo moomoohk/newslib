@@ -36,7 +36,7 @@ class News0404Source(Source):
                "div.article_section > div.post_meta.cf > div.post_date"
 
     def get_times(self, url, html=None):
-        html = self.get_html(url, html)
+        html, url = self.get_html(url, html)
         
         published_text: str = normalize("NFKD", html.select_one(self.published_selector).text)
         last_updated = None

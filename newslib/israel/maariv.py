@@ -45,7 +45,7 @@ class MaarivSource(Source):
         return a.select_one(".three-articles-in-row-title").text
 
     def get_times(self, url, html=None):
-        html = self.get_html(url, html)
+        html, url = self.get_html(url, html)
 
         article_metadatas = html.select(self.json_metadata_selector)
 
@@ -62,7 +62,7 @@ class MaarivSource(Source):
         raise Exception(f"Couldn't get times for {url}")
 
     def get_category(self, url, html=None):
-        html = self.get_html(url, html)
+        html, url = self.get_html(url, html)
 
         if urlparse(url).netloc.startswith("sport1."):
             return "ספורט"

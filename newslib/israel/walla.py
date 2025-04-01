@@ -52,7 +52,7 @@ class WallaSource(Source):
         return json.loads(data)
 
     def get_post_data(self, url: str, html=None):
-        html = self.get_html(url, html)
+        html, url = self.get_html(url, html)
         data = self.get_data(str(html))
 
         article_id = re.match(r"https://news\.walla\.co\.il/item/(?P<id>\d+)", url)["id"]

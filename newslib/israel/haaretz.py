@@ -43,7 +43,7 @@ class HaaretzSource(Source):
         return (a.select_one("h2 > span") or a.select_one("h2")).text
 
     def get_times(self, url, html=None):
-        html = self.get_html(url, html)
+        html, url = self.get_html(url, html)
 
         published = html.select_one(self.published_selector)
         if published.has_attr("datetime"):
@@ -52,7 +52,7 @@ class HaaretzSource(Source):
         return published, None
 
     def get_category(self, url, html=None):
-        html = self.get_html(url, html)
+        html, url = self.get_html(url, html)
 
         nav = html.select_one(self.category_selector)
         if nav is None:

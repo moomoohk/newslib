@@ -72,12 +72,12 @@ class YnetSource(Source):
         return "/fashion/" not in href and "/parents/" not in href and "/blogs/" not in href
 
     def is_premium(self, url, html=None):
-        html = self.get_html(url, html)
+        html, url = self.get_html(url, html)
 
         return html.select_one(self.premium_selector) is not None
 
     def get_category(self, url, html=None):
-        html = self.get_html(url, html)
+        html, url = self.get_html(url, html)
 
         category_meta = html.find("meta", attrs={"property": "sub-channel-name"})
 
@@ -87,7 +87,7 @@ class YnetSource(Source):
         return category_meta.attrs["content"].split("/")[-1]
 
     def get_times(self, url, html=None):
-        html = self.get_html(url, html)
+        html, url = self.get_html(url, html)
 
         data = self.get_data(str(html))
         published_text: str = data["datePublished"]
