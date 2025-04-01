@@ -58,7 +58,7 @@ class HaaretzSource(Source):
         if nav is None:
             return None
 
-        breadcrumbs = nav.select("span > a")
+        breadcrumbs = nav.select("a")
 
         if urlparse(url).path.startswith("/news/"):
             return breadcrumbs[1].text
