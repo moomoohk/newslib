@@ -148,13 +148,13 @@ class Source:
         if self.tags_selector is None:
             return None
 
-        html = self.get_html(url, html)
+        html, url = self.get_html(url, html)
 
         tags_a = html.select(self.tags_selector)
         return [a.text for a in tags_a]
 
     def get_category(self, url: str, html: Tag = None) -> str:
-        html = self.get_html(url, html)
+        html, url = self.get_html(url, html)
 
         category = html.select_one(self.category_selector)
         if category is None:
