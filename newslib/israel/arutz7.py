@@ -42,6 +42,22 @@ class Arutz7Source(Source):
 
         return a
 
+    def get_substories_a(self, root_content: Union[str, bytes, Tag] = None) -> list[Tag]:
+        substories = root_content["data"]["Page"][0]["Items"][1:5]
+        a_list = []
+        for substory in substories:
+            a = Tag(
+                name="a",
+                attrs={
+                    "href": substory["shotedLink"]
+                }
+            )
+            a.string = f"{substory['title2']} {substory['short']}"
+            a_list.append(a)
+
+        return a_list
+
+
     def valid_substory(self, a):
         return a.attrs["href"].lower().startswith("/news/")
 
