@@ -108,21 +108,21 @@ class YnetSource(Source):
             raise Exception("Couldn't extract article data")
 
         data_text = re.sub(
-            "'userId': window\.YitPaywall && YitPaywall\.user && YitPaywall\.user\.props \? YitPaywall\.user\.props\.userId : \'\'.+?,",
+            r"'userId': window\.YitPaywall && YitPaywall\.user && YitPaywall\.user\.props \? YitPaywall\.user\.props\.userId : \'\'.+?,",
             "",
             match["data"],
             flags=re.DOTALL,
         )
 
         data_text = re.sub(
-            "\'piano_id\': window\.YitPaywall && YitPaywall\.user && YitPaywall\.user\.props \? YitPaywall\.user\.props\.piano_id : \'\'.+?,",
+            r"\'piano_id\': window\.YitPaywall && YitPaywall\.user && YitPaywall\.user\.props \? YitPaywall\.user\.props\.piano_id : \'\'.+?,",
             "",
             data_text,
             flags=re.DOTALL,
         )
 
         data_text = re.sub(
-            "\'display\': window\.matchMedia\(\'\(prefers-color-scheme: dark\)\'\)\.matches \? \'dark_mode\' : \'light_mode\'.+?,",
+            r"\'display\': window\.matchMedia\(\'\(prefers-color-scheme: dark\)\'\)\.matches \? \'dark_mode\' : \'light_mode\'.+?,",
             "",
             data_text,
             flags=re.DOTALL,
