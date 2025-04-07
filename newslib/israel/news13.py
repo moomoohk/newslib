@@ -68,7 +68,7 @@ class News13Source(Source):
         return data.get("props").get("pageProps").get("page").get("Content").get("Item")
 
     @lru_cache(maxsize=10)
-    def get_articles(self, html: str):
+    def get_substories(self, html: str):
         data = self.get_data(html).get("props").get("pageProps").get("page").get("Content").get("PageGrid")
 
         standard_four = next(filter(lambda grid_item: grid_item["grid_type"] == "standard_four", data))
@@ -133,11 +133,9 @@ class News13Source(Source):
         elif isinstance(root_content, bytes):
             root_content = root_content.decode()
 
-        articles = self.get_articles(root_content)
-        if len(articles) < 5:
+        articles = self.get_substories(root_content)
+        if len(articles) < 4:
             raise Exception("Articles list too short")
-
-        articles.pop(0)
 
         substories = []
         for article in articles:
