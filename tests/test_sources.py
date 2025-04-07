@@ -44,6 +44,7 @@ def test_top_article(source: Source, root_content: bytes):
 
     top_article_headline = source.get_headline(top_article_a, top_article=True)
     assert isinstance(top_article_headline, str)
+    assert top_article_headline == top_article_headline.strip()
 
     top_article_category = source.get_category(top_article_url, top_article_html)
     assert isinstance(top_article_category, str)
@@ -70,5 +71,6 @@ def test_substories(source: Source, root_content: bytes):
 
     substory_headline = source.get_headline(first_substory_a)
     assert isinstance(substory_headline, str)
+    assert substory_headline == substory_headline.strip()
 
     assert isinstance(source.valid_substory(first_substory_a), bool)
