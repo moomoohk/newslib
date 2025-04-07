@@ -24,7 +24,7 @@ class MaarivSource(Source):
 
     @property
     def top_article_selector(self) -> str:
-        return ".top-story-text-wrap > a"
+        return ".top-story-img-big > a"
 
     @property
     def substories_selector(self) -> str:
@@ -40,9 +40,11 @@ class MaarivSource(Source):
 
     def get_headline(self, a, top_article=False):
         if top_article:
-            return a.select_one(".top-story-title").text
+            html, _ = self.get_html(self.root + a.attrs["href"])
+            title = html.select_one("section.article-title").text.strip()
+            return title
 
-        return a.select_one(".three-articles-in-row-title").text
+        return a.select_one(".three-articles-in-row-title").text.strip()
 
     def get_times(self, url, html=None):
         html, url = self.get_html(url, html)
@@ -53,9 +55,8 @@ class MaarivSource(Source):
             metadata = loads(metadata_tag.string.strip().replace("\r\n", "").replace("&quot;", "\\\""))
 
             if "@type" in metadata and metadata["@type"] == "NewsArticle":
-                datetime_format = "%Y-%m-%dT%H:%MZ"
-                published = datetime.strptime(metadata["datePublished"], datetime_format)
-                modified = datetime.strptime(metadata["dateModified"], datetime_format)
+                published = datetime.fromisoformat(metadata["datePublished"])
+                modified = datetime.fromisoformat(metadata["dateModified"])
 
                 return published, modified
 
