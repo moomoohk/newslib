@@ -12,11 +12,11 @@ class N12Source(Source):
 
     @property
     def top_article_selector(self) -> str:
-        return "#part1 > .grid-ordering.main1 > li:first-child > p > strong > a"
+        return "#part1 > .grid-ordering.main1 > li:first-child strong > a"
 
     @property
     def substories_selector(self) -> str:
-        return "#part1 > .grid-ordering.main1 > li:not(:first-child) > p > strong > a"
+        return "#part1 > .grid-ordering.main1 > li:not(:first-child) strong > a"
 
     @property
     def category_selector(self) -> str:
