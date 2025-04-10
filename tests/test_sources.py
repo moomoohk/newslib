@@ -74,3 +74,10 @@ def test_substories(source: Source, root_content: bytes):
     assert substory_headline == substory_headline.strip()
 
     assert isinstance(source.valid_substory(first_substory_a), bool)
+
+    for substory_a in substories_a:
+        substory_url = urljoin(source.root, substory_a.attrs["href"])
+        substory_html, substory_url = source.get_html(substory_url)
+
+        top_article_category = source.get_category(substory_url, substory_html)
+        assert isinstance(top_article_category, str)

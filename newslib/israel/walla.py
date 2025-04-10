@@ -128,7 +128,7 @@ class WallaSource(Source):
 
     def get_category(self, url, html=None) -> str:
         post_data = self.get_post_data(url, html)
-        category = post_data.get("canonical").get("display").get("name")
+        category = post_data.get("canonical").get("vertical").get("name")
         if category is None:
             raise Exception("Malformed JSON (missing category)")
 
